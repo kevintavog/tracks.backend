@@ -1,0 +1,84 @@
+plugins {
+    id 'org.jetbrains.kotlin.jvm' version "$kotlin_version"
+    id 'org.jetbrains.kotlin.plugin.serialization' version "$kotlin_version"
+    id 'com.github.johnrengelman.shadow' version "$shadow_version"
+    id 'application'
+}
+
+apply plugin: 'kotlinx-serialization'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation platform('org.jetbrains.kotlin:kotlin-bom')
+    implementation "org.jetbrains.kotlin:kotlin-stdlib"
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlin_serialization"
+
+    implementation(platform("com.squareup.okhttp3:okhttp-bom:4.9.0"))
+    implementation("com.squareup.okhttp3:okhttp")
+
+    implementation "com.github.ajalt.clikt:clikt:$clickt_version"
+    implementation "org.apache.logging.log4j:log4j-core:$log4j_version"
+    implementation "ch.qos.logback:logback-classic:$logback_version"
+
+    implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jackson_version"
+    implementation "com.fasterxml.jackson.module:jackson-module-kotlin:$jackson_version"
+
+    implementation "org.apache.commons:commons-math3:$apache_commons_version"
+
+    implementation "io.ktor:ktor-server-core:$ktor_version"
+    implementation "io.ktor:ktor-server-host-common:$ktor_version"
+    implementation "io.ktor:ktor-server-netty:$ktor_version"
+    implementation "io.ktor:ktor-gson:$ktor_version"
+
+    implementation "org.elasticsearch.client:elasticsearch-rest-high-level-client:$elastic_version"
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
+compileKotlin {
+    kotlinOptions {
+        jvmTarget = '11'
+    }
+}
+
+application {
+    mainClass = 'tracks.app.AppKt'
+}
+
+shadow {
+     mainClassName = application.mainClass.get()
+}
+
+task runDiag(type: JavaExec) {
+    group = "Execution"
+    description = "Run the Diagnostics processor"
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = "tracks.diag.DiagMain"
+}
+
+task runDiagServer(type: JavaExec) {
+    group = "Execution"
+    description = "Run the Diagnostics server"
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = "tracks.diagserver.DiagServerKt"
+}
+
+task runFilter(type: JavaExec) {
+    group = "Execution"
+    description = "Run the Track Filter"
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = "tracks.filter.FilterMain"
+}
+
+task runIndexer(type: JavaExec) {
+    group = "Execution"
+    description = "Run the Indexer"
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = "tracks.indexer.IndexerMain"
+}

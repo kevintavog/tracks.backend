@@ -1,0 +1,15 @@
+budapest chocolate
+
+Notables:
+    - missing seconds, often less than 20
+    - inconsistent speed & bearing in a section
+    - the track crosses over itself, often multiple times
+
+Possible approaches
+- Split into sections on a big turn, each of two points.
+    - Consider calculating a turn off of multiple points.
+        - With 5 point, calculate from the 1st to the 3rd and from the 3rd to the 5th
+
+Walk: 14:20:41 - 14:32:14
+
+Walk: 14:50:50 - 15:16:40
