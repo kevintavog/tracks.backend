@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit
 
 object NameLookup {
     private val JSON = "application/json; charset=utf-8".toMediaType()
-    private const val radiusMeters = 10.0
+    private const val radiusMeters = 30.0
 
     private val jsonCoder = Json { ignoreUnknownKeys = true }
     private val client: OkHttpClient by lazy { OkHttpClient.Builder()

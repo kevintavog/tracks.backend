@@ -1,9 +1,6 @@
 package tracks.indexer.models
 
-import tracks.core.models.Gps
-import tracks.core.models.GpsTrackSegment
-import tracks.core.models.GpsVector
-import tracks.core.models.TimezoneInfo
+import tracks.core.models.*
 import tracks.indexer.utils.FilterByDistance
 import tracks.indexer.utils.PointCalculator
 import tracks.indexer.processors.VectorByCourse
@@ -73,6 +70,7 @@ data class GpxWorkspace(val gps: Gps) {
     var states: List<String> = listOf()
     var cities: List<String> = listOf()
     var sites: List<SiteResponse> = listOf()
+    var hierarchicalNames: List<LocationNames> = listOf()
 
     override fun toString(): String = "vectors: $vectors; stops: $stops"
 }

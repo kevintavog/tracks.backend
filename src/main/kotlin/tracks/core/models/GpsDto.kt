@@ -36,7 +36,8 @@ data class GpsDto(
     val countries: List<String>,
     val states: List<String>,
     val cities: List<String>,
-    val sites: List<SiteResponse>
+    val sites: List<SiteResponse>,
+    val hierarchicalNames: List<LocationNames>,
 )
 
 @Serializable

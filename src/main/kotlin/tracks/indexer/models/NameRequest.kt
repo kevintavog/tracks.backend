@@ -45,7 +45,7 @@ data class SiteResponse(
     val name: List<String>,
     val lat: Double,
     val lon: Double,
-    val tags: List<OsmTagValue>
+    val tags: List<OsmTagValue> = emptyList()
 )
 
 // The OSM POI service

@@ -65,7 +65,8 @@ object IndexGps {
             workspace.countries,
             workspace.states,
             workspace.cities,
-            workspace.sites
+            workspace.sites,
+            workspace.hierarchicalNames
         )
 
         esClient.index(IndexRequest(ElasticClient.tracksIndex)

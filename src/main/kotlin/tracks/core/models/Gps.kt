@@ -2,6 +2,7 @@ package tracks.core.models
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonRootName
+import kotlinx.serialization.Serializable
 import tracks.core.utils.Converter
 import tracks.core.utils.GeoCalculator
 import tracks.indexer.models.SiteResponse
@@ -25,6 +26,7 @@ data class Gps(
     var stateNames: List<String> = listOf(),
     var cityNames: List<String> = listOf(),
     var sites: List<SiteResponse> = listOf(),
+    var hierarchicalNames: List<LocationNames> = listOf()
 ) {
     val kilometers: Double by lazy { tracks.map { it.kilometers }.reduce { acc, v -> acc + v } }
     val seconds: Double by lazy { tracks.first().segments.first().points.first().durationSeconds(
@@ -38,6 +40,28 @@ data class Gps(
             bounds.maxlon = (bounds.maxlon!!).coerceAtLeast(it.bounds.maxlon!!)
         }
         bounds
+    }
+}
+
+@Serializable
+data class LocationNames(
+    val countryName: String?,
+    val countryCode: String?,
+    val stateName: String?,
+    val cityName: String?,
+    val sites: MutableList<LocationNamesSite>
+)
+
+@Serializable
+data class LocationNamesSite(
+    val id: String,
+    val name: String,
+    val lat: Double,
+    val lon: Double,
+    val children: MutableList<LocationNamesSite>
+) {
+    override fun toString(): String {
+        return "$name $children"
     }
 }
 
