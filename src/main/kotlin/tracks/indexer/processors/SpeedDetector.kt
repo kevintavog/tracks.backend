@@ -24,7 +24,8 @@ object SpeedDetector {
 
     fun processLowSpeed(workspace: GpxWorkspace) {
         process(workspace, AnalyzerSettings.movementMinSpeedMetersSecond, 15, LowQualityType.LOW_MOVEMENT) {
-            pt -> pt.calculatedMps
+//            pt -> pt.calculatedMps
+            pt -> pt.smoothedMps
         }
     }
 

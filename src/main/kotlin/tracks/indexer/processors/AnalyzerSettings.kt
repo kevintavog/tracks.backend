@@ -5,7 +5,7 @@ object AnalyzerSettings {
     const val minSecondsLowMovementForStop = 30
 
     const val movementMinSpeedMetersSecond: Double = 0.320
-    const val movementMinSpeedKmh: Double = 1.2
+    const val movementMinSpeedKmh: Double = 1.152
 //    const val movementMaxSpeedKmh: Double = 380.0
 
     const val maxNormalTurn = 60
@@ -15,7 +15,7 @@ object AnalyzerSettings {
 
     const val speedGaussKernelWidth = 5
 
-    const val speedSmoothingSeconds = 6
+    const val speedSmoothingSeconds = 7
 
     const val gaussKernelWidth = 7
     const val smoothPointsDelta = gaussKernelWidth * 2 / 3
@@ -32,9 +32,9 @@ object AnalyzerSettings {
     const val sharpTurnMinSecondsBetween = 1 * 60.0
     const val sharpTurnThreshold = 45
 
-//    const val vectorOverlapDuration = 20 * 60.0
-//    const val vectorMinimumScore = 3
-//    const val vectorMinBetweenClouds = 6
+//    const val trajectoryOverlapDuration = 20 * 60.0
+//    const val trajectoryMinimumScore = 3
+//    const val trajectoryMinBetweenClouds = 6
 
 //    const val noisyBearingDelta = 30
 //    const val noisyAbruptBearing = 60

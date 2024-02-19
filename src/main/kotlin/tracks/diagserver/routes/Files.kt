@@ -18,8 +18,7 @@ fun Route.files() {
         context.respondFile(File("$diagFilesFolder/diag.json"))
     }
 
-    get("/vectors") {
-        context.respondFile(File("$diagFilesFolder/vectors.gpx"))
+    get("/trajectories") {
+        context.respondFile(File("$diagFilesFolder/trajectories.gpx"))
     }
-
 }

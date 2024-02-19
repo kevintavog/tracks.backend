@@ -146,6 +146,19 @@ fun GpsTrackPoint.toXml(dom: Document): Node {
     xml.appendChild(dom.element("course", (course ?: 0.0).toInt().toString()))
     xml.appendChild(dom.element("speed", (speed ?: 0.0).toString()))
 
+    fix?.let {
+        xml.appendChild(dom.element("fix", it))
+    }
+    hdop?.let {
+        xml.appendChild(dom.element("hdop", it.toString()))
+    }
+    pdop?.let {
+        xml.appendChild(dom.element("pdop", it.toString()))
+    }
+    vdop?.let {
+        xml.appendChild(dom.element("vdop", it.toString()))
+    }
+
     val extension = dom.createElement("extensions")
     extension.appendChild(dom.rangicElement("calculatedMeters", calculatedMeters.toString()))
     extension.appendChild(dom.rangicElement("calculatedSeconds", calculatedSeconds.toString()))

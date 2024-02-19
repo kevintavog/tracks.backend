@@ -5,6 +5,7 @@ import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
 import tracks.core.models.*
 import tracks.indexer.TrackParser
+import tracks.indexer.utils.PointCalculator
 import java.text.SimpleDateFormat
 import java.time.LocalTime
 import java.time.ZoneId
@@ -23,6 +24,32 @@ class FilterMain {
 }
 
 class Filter: CliktCommand() {
+    companion object {
+        fun isIncluded(first: ZonedDateTime, pointTime: ZonedDateTime, startTime: LocalTime, endTime: LocalTime, endIsNextDay: Boolean): Boolean {
+            if (endIsNextDay) {
+                if (pointTime.dayOfYear == first.dayOfYear) {
+                    return !(pointTime.hour < startTime.hour ||
+                            pointTime.hour == startTime.hour && pointTime.minute < startTime.minute)
+                }
+                if (pointTime.hour > endTime.hour ||
+                    pointTime.hour == endTime.hour && pointTime.minute > endTime.minute) {
+                    return false
+                }
+            } else {
+                if (pointTime.hour < startTime.hour ||
+                    pointTime.hour == startTime.hour && pointTime.minute < startTime.minute) {
+                    return false
+                }
+
+                if (pointTime.hour > endTime.hour ||
+                    pointTime.hour == endTime.hour && pointTime.minute > endTime.minute) {
+                    return false
+                }
+            }
+
+            return true
+        }
+    }
     private val inputFile: String by option(
         "-i",
         "--input",
@@ -60,7 +87,7 @@ class Filter: CliktCommand() {
         val points = mutableListOf<GpsTrackPoint>()
         gps.tracks.forEach { track ->
             track.segments.forEach { segment ->
-                points.addAll(segment.points.filter { isIncluded(first!!.dateTime(), it.dateTime(), startTime, endTime, endIsNextDay) })
+                points.addAll(PointCalculator.process(segment.points.filter { isIncluded(first!!.dateTime(), it.dateTime(), startTime, endTime, endIsNextDay) }))
             }
         }
 
@@ -69,33 +96,5 @@ class Filter: CliktCommand() {
             listOf(GpsTrack("", "", listOf(GpsTrackSegment(points)))))
         TrackParser().save(filteredGps, outputFile)
         exitProcess(0)
-    }
-
-    private fun isIncluded(first: ZonedDateTime, pointTime: ZonedDateTime, startTime: LocalTime, endTime: LocalTime, endIsNextDay: Boolean): Boolean {
-        if (endIsNextDay) {
-            if (pointTime.dayOfYear == first.dayOfYear) {
-                if (pointTime.hour < startTime.hour ||
-                    pointTime.hour == startTime.hour && pointTime.minute < startTime.minute) {
-                    return false
-                }
-                return true
-            }
-            if (pointTime.hour > endTime.hour ||
-                pointTime.hour == endTime.hour && pointTime.minute > endTime.minute) {
-                return false
-            }
-        } else {
-            if (pointTime.hour < startTime.hour ||
-                pointTime.hour == startTime.hour && pointTime.minute < startTime.minute) {
-                return false
-            }
-
-            if (pointTime.hour > endTime.hour ||
-                pointTime.hour == endTime.hour && pointTime.minute > endTime.minute) {
-                return false
-            }
-        }
-
-        return true
     }
 }

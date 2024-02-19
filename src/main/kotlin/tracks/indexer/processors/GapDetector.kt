@@ -2,7 +2,6 @@ package tracks.indexer.processors
 
 import tracks.core.models.GpsTrackPoint
 import tracks.core.models.GpsTrackSegment
-import tracks.core.models.timeOnly
 import tracks.indexer.models.BreakReason
 import tracks.indexer.models.GpsBreak
 import tracks.indexer.models.GpxWorkspace
@@ -14,8 +13,10 @@ object GapDetector {
         // segments to ease later processing.
         val newSegments = mutableListOf<GpsTrackSegment>()
         workspace.allSegments.forEach { segment ->
+//println("Processing allSegments: ${segment.points.first()?.time} - ${segment.points.last()?.time}, ${segment.points.size} points")
             newSegments.addAll(process(segment.points, workspace.breaks))
         }
+
         workspace.currentSegments = newSegments
         // Now find small time-gaps; these will add a break, but won't split the segment
         workspace.currentSegments.forEach {
@@ -38,7 +39,7 @@ object GapDetector {
             if (current.calculatedSeconds > AnalyzerSettings.maxSecondsBetweenPoints) {
                 if (accumulated.isNotEmpty()) {
                     breaks.add(GpsBreak(accumulated.last(), current, BreakReason.LargeGap))
-//println("Splitting due to gap: ${accumulated.first().timeOnly()} - ${accumulated.last().timeOnly()} (@${current.timeOnly()} - ${current.calculatedSeconds})")
+//println("Splitting due to gap: ${accumulated.first().time} - ${accumulated.last().time} (@${current.time} - ${current.calculatedSeconds})")
                     newSegments.add(GpsTrackSegment(PointCalculator.process(accumulated.map { it })))
                     accumulated.clear()
                 }
@@ -46,14 +47,19 @@ object GapDetector {
         }
 
         if (accumulated.isNotEmpty()) {
-//println("Adding last bit of segment: ${accumulated.first().timeOnly()} - ${accumulated.last().timeOnly()}")
+//println("Adding last bit of segment: ${accumulated.first().time} - ${accumulated.last().time}")
             newSegments.add(GpsTrackSegment(PointCalculator.process(accumulated)))
         }
+
+//println("Stage 1")
+//newSegments.forEach { seg ->
+//    println("  Segment from ${seg.points.first()?.time} -> ${seg.points.last()?.time}")
+//}
 
         return newSegments
     }
 
-    fun detectSmallGaps(segment: GpsTrackSegment, breaks: MutableList<GpsBreak>) {
+    private fun detectSmallGaps(segment: GpsTrackSegment, breaks: MutableList<GpsBreak>) {
         // Expect a point every second; add breaks for consecutive misses
         for (idx in 1 until segment.points.size) {
             if (segment.points[idx].calculatedSeconds > 1.0) {

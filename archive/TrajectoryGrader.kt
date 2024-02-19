@@ -4,21 +4,21 @@ import tracks.core.models.*
 import tracks.core.utils.GeoCalculator
 import kotlin.math.absoluteValue
 
-object VectorGrader {
-    fun process(vectors: List<GpsVector>) {
-        // For every vector with a big course change, scan forward to determine if the run leaves the area
-        for (idx in 1 until vectors.size) {
-            val prev = vectors[idx-1]
-            val current = vectors[idx]
+object TrajectoryGrader {
+    fun process(trajectories: List<GpsTrajectory>) {
+        // For every trajectory with a big course change, scan forward to determine if the run leaves the area
+        for (idx in 1 until trajectories.size) {
+            val prev = trajectories[idx-1]
+            val current = trajectories[idx]
             val bearingDiff = GeoCalculator.bearingDelta(prev.bearing, current.bearing).absoluteValue
             if (bearingDiff >= AnalyzerSettings.sharpTurnThreshold) {
 println("${current.start.timeOnly()}: ${prev.bearing} ${current.bearing} -- $bearingDiff")
-                scan(idx, vectors)
+                scan(idx, trajectories)
             }
         }
     }
 
-    private fun scan(start: Int, vectors: List<GpsVector>) {
+    private fun scan(start: Int, trajectoryies: List<GpsVector>) {
         var startVector = vectors[start]
         var prevVector = vectors[start]
         val endScanTime = prevVector.end.dateTime().plusMinutes(5)

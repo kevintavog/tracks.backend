@@ -94,7 +94,7 @@ println(
             var lastIndex = -1
             var countSharpTurns = 0
 
-println("Start vector at ${segment.points.first().time} - ${segment.points.last().time}")
+println("Start trajectory at ${segment.points.first().time} - ${segment.points.last().time}")
             val vectors = VectorByCourse.process(segment)
             for (idx in 1 until vectors.size) {
                 val prev = vectors[idx - 1]

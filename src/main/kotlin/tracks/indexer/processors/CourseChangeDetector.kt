@@ -1,7 +1,7 @@
 package tracks.indexer.processors
 
 import tracks.core.models.GpsTrackPoint
-import tracks.core.models.GpsVector
+import tracks.core.models.GpsTrajectory
 import tracks.core.utils.GeoCalculator
 import tracks.indexer.models.GpxWorkspace
 import tracks.indexer.models.LowQualityRun
@@ -27,10 +27,10 @@ object CourseChangeDetector {
         }
     }
 
-    fun processVectors(workspace: GpxWorkspace) {
-        var lastVector: GpsVector? = null
-        workspace.vectors.forEach { current ->
-            lastVector?.let { lv ->
+    fun processTrajectories(workspace: GpxWorkspace) {
+        var lastTrajectory: GpsTrajectory? = null
+        workspace.trajectories.forEach { current ->
+            lastTrajectory?.let { lv ->
                 val delta = GeoCalculator.bearingDelta(lv.bearing, current.bearing)
                 if (delta.absoluteValue > 90) {
                     workspace.lowQualityRuns.add(LowQualityRun(
@@ -40,7 +40,7 @@ object CourseChangeDetector {
                     "Course changed ${delta.absoluteValue} to ${current.bearing}"))
                 }
             }
-            lastVector = current
+            lastTrajectory = current
         }
     }
 }

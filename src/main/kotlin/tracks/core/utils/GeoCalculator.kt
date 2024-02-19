@@ -3,11 +3,10 @@ package tracks.core.utils
 import kotlin.math.*
 import tracks.core.models.*
 
-
 object GeoCalculator {
-    val radiusEarthKm = 6371.3
+    private const val radiusEarthKm = 6371.3
 //    val oneDegreeLatitudeMeters = 111111.0
-    private const val POINT_EPSILON = 0.000001
+    private const val POINT_EPSILON = 0.00000000001
 
     // Returns the bearing in degrees: 0-359, with 0 as north and 90 as east
     // From https://www.movable-type.co.uk/scripts/latlong.html
@@ -65,7 +64,8 @@ object GeoCalculator {
     }
 
     // Based off: https://github.com/MartinThoma/algorithms/blob/master/crossingLineCheck/Geometry/src/Geometry.java
-    fun doVectorsOverlap(first: GpsVector, second: GpsVector): Boolean {
+    // NOTE: longitude is the X value and latitude is the Y value when migrating the above code
+    fun doTrajectoriesOverlap(first: GpsTrajectory, second: GpsTrajectory): Boolean {
         val firstBB = GpsRectangle(first.start, first.end)
         val secondBB = GpsRectangle(second.start, second.end)
         return (doBoundingBoxesIntersect(firstBB, secondBB)
@@ -74,50 +74,50 @@ object GeoCalculator {
     }
 
     private fun doBoundingBoxesIntersect(first: GpsRectangle, second: GpsRectangle): Boolean {
-        return first.lowerLeft.lat!! <= second.upperRight.lat!! &&
-                first.upperRight.lat!! >= second.lowerLeft.lat!! &&
-                first.lowerLeft.lon!! <= second.upperRight.lon!!
-                && first.upperRight.lon!! >= second.lowerLeft.lon!!
+        return first.lowerLeft.lon!! <= second.upperRight.lon!! &&
+                first.upperRight.lon!! >= second.lowerLeft.lon!! &&
+                first.lowerLeft.lat!! <= second.upperRight.lat!!
+                && first.upperRight.lat!! >= second.lowerLeft.lat!!
     }
 
-    private fun lineSegmentTouchesOrCrossesLine(a: GpsVector, b: GpsVector): Boolean {
+    private fun lineSegmentTouchesOrCrossesLine(a: GpsTrajectory, b: GpsTrajectory): Boolean {
         return (isPointOnLine(a, b.start)
                 || isPointOnLine(a, b.end)
                 || isPointRightOfLine(a, b.start) xor isPointRightOfLine(a, b.end))
     }
 
-    private fun isPointOnLine(a: GpsVector, b: GpsPoint): Boolean {
+    private fun isPointOnLine(a: GpsTrajectory, b: GpsPoint): Boolean {
         // Move the image, so that a.start is at (0, 0)
-        val aTmp = GpsVector(
+        val aTmp = GpsTrajectory(
             GpsPointImpl(0.0, 0.0, a.start.time),
             GpsPointImpl(
-                a.end.lat!! - a.start.lat!!,
                 a.end.lon!! - a.start.lon!!,
+                a.end.lat!! - a.start.lat!!,
                 a.start.time
             ),
             0
         )
-        val bTmp = GpsPointImpl(b.lat!! - a.start.lat!!, b.lon!! - a.start.lon!!, a.start.time)
+        val bTmp = GpsPointImpl(b.lon!! - a.start.lon!!, b.lat!! - a.start.lat!!, a.start.time)
         val r: Double = crossProduct(aTmp.end, bTmp)
         return abs(r) < POINT_EPSILON
     }
 
-    private fun isPointRightOfLine(a: GpsVector, b: GpsPoint): Boolean {
+    private fun isPointRightOfLine(a: GpsTrajectory, b: GpsPoint): Boolean {
         // Move the image, so that a.first is on (0|0)
-        val aTmp = GpsVector(
+        val aTmp = GpsTrajectory(
             GpsPointImpl(0.0, 0.0, a.start.time),
             GpsPointImpl(
-                a.end.lat!! - a.start.lat!!,
                 a.end.lon!! - a.start.lon!!,
+                a.end.lat!! - a.start.lat!!,
                 a.start.time
             ),
             0
         )
-        val bTmp = GpsPointImpl(b.lat!! - a.start.lat!!, b.lon!! - a.start.lon!!, a.start.time)
+        val bTmp = GpsPointImpl(b.lon!! - a.start.lon!!, b.lat!! - a.start.lat!!, a.start.time)
         return crossProduct(aTmp.end, bTmp) < 0
     }
 
     private fun crossProduct(a: GpsPoint, b: GpsPoint): Double {
-        return a.lat!! * b.lon!! - b.lat!! * a.lon!!
+        return a.lon!! * b.lat!! - b.lon!! * a.lat!!
     }
 }

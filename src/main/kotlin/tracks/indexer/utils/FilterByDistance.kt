@@ -2,8 +2,8 @@ package tracks.indexer.utils
 
 import tracks.core.models.*
 
-object FilterByDistance {
-    fun process(points: List<GpsTrackPoint>, minMeters: Double): List<GpsTrackPoint> {
+object FilterPoints {
+    fun byDistance(points: List<GpsTrackPoint>, minMeters: Double): List<GpsTrackPoint> {
         val result = mutableListOf<GpsTrackPoint>()
         if (points.isEmpty()) {
             return result
@@ -20,5 +20,24 @@ object FilterByDistance {
         }
 
         return result
+    }
+
+    fun byTime(points: List<GpsTrackPoint>, minSeconds: Double): List<GpsTrackPoint> {
+        val newPoints = mutableListOf<GpsTrackPoint>()
+        if (points.isEmpty()) {
+            return newPoints
+        }
+
+        var previous = points.first()
+        newPoints.add(previous)
+        for (idx in 1 until points.size) {
+            val current = points[idx]
+            if (previous.durationSeconds(current) >= minSeconds) {
+                newPoints.add(current.copy())
+                previous = current
+            }
+        }
+
+        return newPoints
     }
 }

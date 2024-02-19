@@ -29,10 +29,10 @@ object TransportationCalculator {
 
 
     private val speedProfiles = listOf(
-        SpeedProfile(0.0, 1.0, 6.6, 7.4, TransportationMode.foot),
-        SpeedProfile(6.6, 12.0, 34.0, 41.0, TransportationMode.bicycle),
-        SpeedProfile(16.0, 25.0, 128.0, 160.0, TransportationMode.car),
-        SpeedProfile(90.0, 100.0, 320.0, 370.0, TransportationMode.train),
+        SpeedProfile( 0.0,   1.0,    6.6,    7.4, TransportationMode.foot),
+        SpeedProfile( 6.6,   12.0,  34.0,   41.0, TransportationMode.bicycle),
+        SpeedProfile(16.0,   25.0, 128.0,  160.0, TransportationMode.car),
+        SpeedProfile(90.0,  100.0, 320.0,  370.0, TransportationMode.train),
         SpeedProfile(100.0, 160.0, 800.0, 1000.0, TransportationMode.airplane)
     )
 

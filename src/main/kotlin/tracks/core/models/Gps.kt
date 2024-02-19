@@ -6,6 +6,7 @@ import kotlinx.serialization.Serializable
 import tracks.core.utils.Converter
 import tracks.core.utils.GeoCalculator
 import tracks.indexer.models.SiteResponse
+import tracks.indexer.models.Vector
 import tracks.indexer.processors.TransportationCalculator
 import tracks.indexer.utils.DateTimeFormatter
 import java.time.Duration
@@ -28,8 +29,8 @@ data class Gps(
     var sites: List<SiteResponse> = listOf(),
     var hierarchicalNames: List<LocationNames> = listOf()
 ) {
-    val kilometers: Double by lazy { tracks.map { it.kilometers }.reduce { acc, v -> acc + v } }
-    val seconds: Double by lazy { tracks.first().segments.first().points.first().durationSeconds(
+    val kilometers: Double by lazy { if (tracks.first().segments.isEmpty()) 0.0 else tracks.map { it.kilometers }.reduce { acc, v -> acc + v } }
+    val seconds: Double by lazy { if (tracks.first().segments.isEmpty()) 0.0 else tracks.first().segments.first().points.first().durationSeconds(
         tracks.last().segments.last().points.last()) }
     val calculatedBounds: GpsBounds by lazy {
         val bounds = tracks.first().bounds
@@ -117,17 +118,21 @@ data class GpsTrack(
     @set:JsonProperty("trkseg")
     var segments: List<GpsTrackSegment> = ArrayList()
 ) {
-    val kilometers: Double by lazy { segments.map { it.kilometers }.reduce { acc, v -> acc + v } }
-    val seconds: Double by lazy { segments.first().points.first().durationSeconds(segments.last().points.last()) }
+    val kilometers: Double by lazy { if (segments.isEmpty()) 0.0 else segments.map { it.kilometers }.reduce { acc, v -> acc + v } }
+    val seconds: Double by lazy { if (segments.isEmpty()) 0.0 else segments.first().points.first().durationSeconds(segments.last().points.last()) }
     val bounds: GpsBounds by lazy {
-        val bounds = segments.first().bounds
-        segments.forEach {
-            bounds.minlat = (bounds.minlat!!).coerceAtMost(it.bounds.minlat!!)
-            bounds.minlon = (bounds.minlon!!).coerceAtMost(it.bounds.minlon!!)
-            bounds.maxlat = (bounds.maxlat!!).coerceAtLeast(it.bounds.maxlat!!)
-            bounds.maxlon = (bounds.maxlon!!).coerceAtLeast(it.bounds.maxlon!!)
+        if (segments.isEmpty()) {
+            GpsBounds(null, null, null, null)
+        } else {
+            val bounds = segments.first().bounds
+            segments.forEach {
+                bounds.minlat = (bounds.minlat!!).coerceAtMost(it.bounds.minlat!!)
+                bounds.minlon = (bounds.minlon!!).coerceAtMost(it.bounds.minlon!!)
+                bounds.maxlat = (bounds.maxlat!!).coerceAtLeast(it.bounds.maxlat!!)
+                bounds.maxlon = (bounds.maxlon!!).coerceAtLeast(it.bounds.maxlon!!)
+            }
+            bounds
         }
-        bounds
     }
 }
 
@@ -156,7 +161,8 @@ data class GpsTrackSegment(
     val course: Int by lazy { GeoCalculator.bearing(points.first(), points.last()) }
     val speedKmh: Double by lazy { Converter.speedKph(seconds, kilometers) }
     val bounds: GpsBounds by lazy {
-        val bounds = GpsBounds(points.first().lat, points.first().lon, points.first().lat, points.first().lon)
+        val first = points.first()
+        val bounds = GpsBounds(first.lon, first.lon, first.lat, first.lat)
         points.forEach {
             bounds.minlat = (bounds.minlat!!).coerceAtMost(it.lat!!)
             bounds.minlon = (bounds.minlon!!).coerceAtMost(it.lon!!)
@@ -179,7 +185,7 @@ data class GpsTrackSegment(
 
     override fun toString(): String {
         if (points.isEmpty()) { return "Empty" }
-        return "${points.first().timeOnly()} - ${points.last().timeOnly()}: $kilometers ${speedKmh}kmh"
+        return "${points.first().timeOnly()} - ${points.last().timeOnly()}; ${kilometers}km ${speedKmh}kmh"
     }
 }
 
@@ -205,10 +211,13 @@ data class GpsTrackPoint(
     var calculatedSeconds: Double = 0.0,
     var calculatedMps: Double = 0.0,
     var calculatedKmh: Double = 0.0,
-//    var calculatedTao: Double = 0.0,
+    var calculatedAngularVelocity: Double = 0.0,
+    var calculatedTao: Double = 0.0,
+    var recentCourseDeltas: Int = 0,
 
     // Acceleration units: meters/s/s
     var deviceAcceleration: Double = 0.0,
+    var deviceAccelerationGrade: Double = 0.0,
     var calculatedAcceleration: Double = 0.0,
     var accelerationGrade: Double = 0.0,
 
@@ -220,8 +229,10 @@ data class GpsTrackPoint(
     var deltaElevation: Double = 0.0,
 
     var smoothedCourse: Int = 0,
-//    var smoothedKmh: Double = 0.0,
-//    var smoothedMeters: Double = 0.0,
+    var smoothedKmh: Double = 0.0,
+    var smoothedMeters: Double = 0.0,
+    var smoothedMps: Double = 0.0,
+    var smoothedDeltaCourse: Int = 0,
 
 //    var velocity: Double = 0.0,
 //    var latVelocity: Double = 0.0,
@@ -278,7 +289,7 @@ class GpsRectangle(one: GpsPoint, two: GpsPoint) {
     }
 }
 
-data class GpsVector(
+data class GpsTrajectory(
     val start: GpsPoint,
     val end: GpsPoint,
     val bearing: Int,

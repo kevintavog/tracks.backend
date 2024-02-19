@@ -1,9 +1,9 @@
 package tracks.indexer.models
 
 import tracks.core.models.*
-import tracks.indexer.utils.FilterByDistance
 import tracks.indexer.utils.PointCalculator
-import tracks.indexer.processors.VectorByCourse
+import tracks.indexer.processors.TrajectoryByCourse
+import tracks.indexer.utils.FilterPoints
 import tracks.indexer.utils.TimezoneLookup
 
 data class GpxWorkspace(val gps: Gps) {
@@ -37,18 +37,24 @@ data class GpxWorkspace(val gps: Gps) {
             workspace.tracksStartEnd = trackStartEnd
             return workspace
         }
+
+        fun segmentsByDistance(segments: List<GpsTrackSegment>, meters: Double): List<GpsTrackSegment> {
+            return segments.map {
+                val newPoints = it.points.map { point -> point.copy() }
+                GpsTrackSegment(PointCalculator.process(FilterPoints.byDistance(newPoints, meters)))
+            }
+        }
     }
+
     lateinit var allSegments: List<GpsTrackSegment>
     lateinit var tracksStartEnd: List<StartEnd>
 
     val oneMeterSegments: List<GpsTrackSegment> by lazy {
-        allSegments.map {
-            val newPoints = it.points.map { point -> point.copy() }
-            GpsTrackSegment(PointCalculator.process(FilterByDistance.process(newPoints, 1.0))) }
+        segmentsByDistance(allSegments, 1.0)
      }
 
-    val vectors: List<GpsVector> by lazy {
-        VectorByCourse.process(this)
+    val trajectories: List<GpsTrajectory> by lazy {
+        TrajectoryByCourse.process(this.currentSegments)
     }
 
     val timezoneInfo: TimezoneInfo by lazy {
@@ -72,5 +78,5 @@ data class GpxWorkspace(val gps: Gps) {
     var sites: List<SiteResponse> = listOf()
     var hierarchicalNames: List<LocationNames> = listOf()
 
-    override fun toString(): String = "vectors: $vectors; stops: $stops"
+    override fun toString(): String = "trajectories: $trajectories; stops: $stops"
 }

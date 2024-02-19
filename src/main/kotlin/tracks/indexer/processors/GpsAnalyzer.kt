@@ -9,6 +9,12 @@ object GpsAnalyzer {
     fun process(gps: Gps): GpxWorkspace {
         val workspace = GpxWorkspace.create(gps)
 
+//println("Pre processing segments")
+//workspace.allSegments.forEach { seg ->
+//    println("  (All) Segment from ${seg.points.first()?.time} -> ${seg.points.last()?.time}")
+//}
+
+        NoisyStopDetector.process(workspace)
         SpeedDetector.processLowSpeed(workspace)
         SpeedDetector.trimLowSpeedRuns(workspace)
 
@@ -16,8 +22,14 @@ object GpsAnalyzer {
         MissingDataDetector.process(workspace)
 
         GapDetector.process(workspace)
+//println("After gap detector")
+//workspace.currentSegments.forEach { seg ->
+//    println("  Segment from ${seg.points.first()?.time} -> ${seg.points.last()?.time}")
+//}
+
+
         SpeedChangeDetector.removeHighAcceleration(workspace)
-        CourseChangeDetector.processVectors(workspace)
+        CourseChangeDetector.processTrajectories(workspace)
 
         val waypoints = mutableListOf<GpsWaypoint>()
         waypoints.addAll(gps.waypoints)
@@ -49,6 +61,14 @@ object GpsAnalyzer {
         // A last check for splitting segments - if there's a transition to or from foot, split the segment
         workspace.currentSegments = SpeedChangeDetector.splitSegmentsByFoot(workspace.currentSegments)
 
+//println("Post processing segments")
+//workspace.allSegments.forEach { seg ->
+//    println("  (All) Segment from ${seg.points.first()?.time} -> ${seg.points.last()?.time}")
+//}
+//workspace.currentSegments.forEach { seg ->
+//    println("  Segment from ${seg.points.first()?.time} -> ${seg.points.last()?.time}")
+//}
+
         // Honor the track boundaries in the original file
         val tracks = mutableListOf<GpsTrack>()
         val segments = mutableListOf<GpsTrackSegment>()
@@ -56,7 +76,9 @@ object GpsAnalyzer {
         workspace.currentSegments.forEach { seg ->
             seg.points.firstOrNull()?.let { first ->
                 first.time?.let { firstTime ->
+//println("Segment from $firstTime ($trackIndex of ${workspace.tracksStartEnd.size})")
                     if (firstTime >= workspace.tracksStartEnd[trackIndex].end) {
+println("Track ${trackIndex + 1}: ends at ${workspace.tracksStartEnd[trackIndex].end}")
                         val filtered = segments.filter { isGoodSegment(it) }
                         if (filtered.isNotEmpty()) {
                             tracks.add(GpsTrack("", "", filtered.map { it } ))

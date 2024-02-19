@@ -97,6 +97,7 @@ class Indexer: CliktCommand() {
                         filename.drop(tracksFolder.length) else filename
                     val workspace = GpsAnalyzer.process(originalGps)
                     GpxRepository.save(filename, workspace.processedGps!!)
+//println("DID NOT INDEX!!!")
                     IndexGps.index(relativePath, workspace)
                 }
             }
